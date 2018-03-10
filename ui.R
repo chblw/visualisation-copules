@@ -13,10 +13,11 @@ shinyUI(fluidPage(
                    options = list(maxItems = 1, placeholder = 'Select a copula'),
                    selected = "EFGM")),
   
-    sliderParam <- sliderInput('kendallTau', 'Copula parameter', 
-                min = -1, max = 1, value = 0, step = 0.01),
+  sliderParam <- sliderInput('kendallTau', 'Copula parameter', 
+                             min = -1, max = 1, value = 0, step = 0.01),
   
   mainPanel(
+    textOutput("caption"), 
     plotlyOutput("copulaPlot")
   )
 ))

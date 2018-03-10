@@ -31,18 +31,30 @@ dFrank <- function(u1, u2, kendallTau) {
     (exp(-param * (u1 + u2)) - exp(-param * u1) - exp(-param * u2) + exp(-param)) ^ 2
 }
 
+pGumbel <- function(u1, u2, param) {
+  exp(- ((-(log(u1))) ^ param + (-(log(u2))) ^ param) ^ (1 / param))
+}
+
 dGumbel <- function(u1, u2, kendallTau) {
   param <- (1 - kendallTau) ^ -1
-  gumbel.cop <- archmCopula("gumbel", param)
-  dCopula(c(u1, u2), gumbel.cop)
+  pGumbel(u1, u2, param) * ((-log(u1)) ^ (param - 1) * (-log(u2)) ^ (param - 1)) / (u1 * u2) *
+    ((-log(u1)) ^ param + (-log(u2)) ^ param) ^ (1 / param - 2) * 
+    (param - 1 + ((-log(u1)) ^ param + (-log(u2)) ^ param) ^ (1 / param))
 }
 
-dGumbel <- Vectorize(dGumbel)
-
-dNorm <- function(u1, u2, kendallTau) {
+dNormal <- function(u1, u2, kendallTau) {
   param <- sin(kendallTau * pi / 2)
-  norm.cop <- normalCopula(param)
-  dCopula(c(u1, u2), norm.cop)
+  1 / sqrt(1 - param ^ 2) * exp(- ( qnorm(u1) ^ 2 - 2 * param * qnorm(u1) * qnorm(u2) + qnorm(u2) ^ 2) / (2 * (1 - param ^ 2))) *
+    exp((qnorm(u1) ^ 2 + qnorm(u2) ^ 2) / 2)
 }
 
-dNorm <- Vectorize(dNorm)
+dStudent <- function(u1, u2, kendallTau, v = 6) {
+  MinimizeTauStudent <- function(current_param) {
+    abs(kendallTau - tau(tCopula(dim = 2, param = current_param)))
+  }
+  param <- optimize(MinimizeTauStudent, c(-1, 1))$minimum
+  densite <- param ^ (-0.5) * (gamma((v + 2) / 2 * gamma(v / 2))) / (gamma((v + 1) / 2)) ^ 2 *
+    (1 + (qt(u1, df = v) ^ 2 - 2 * param * qt(u1, df = v) * qt(u2, df = v) + qt(u2, df = v) ^ 2) / (v * (1 - param ^ 2))) ^((v + 2) / 2) *
+    (1 + qt(u1, df = v) / v) ^ ((v + 2) / 2) * (1 + qt(u2, df = v) / v) ^ ((v + 2) / 2)
+  pmax(pmin(densite, 1000), -1000)
+}

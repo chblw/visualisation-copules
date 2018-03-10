@@ -1,7 +1,16 @@
-copulaTypes <- c("EFGM", "AMH", "Clayton", "Frank", "Gumbel", "Normale")
+copulaTypes <- c("EFGM", "AMH", "Clayton", "Frank", "Gumbel", "Normal", "Student")
 source("dCopula.R")
 
 shinyServer(function(input, output, session) {
+  
+  output$caption <- renderText({
+    if (input$name == "Student") {
+      "Fonctionne pas"
+    } else {
+      ""
+    }
+  })
+  
   
   output$copulaPlot <- renderPlotly({
     if (length(input$name) == 0) {
@@ -19,7 +28,9 @@ shinyServer(function(input, output, session) {
       } else if(input$name == "Gumbel") {
         current_dcopula <- dGumbel
       } else if(input$name == "Normal") {
-        current_dcopula <- dNorm
+        current_dcopula <- dNormal
+      } else if(input$name == "Student") {
+        current_dcopula <- dStudent
       }
       
       x.seq <- seq(0, 1, 0.01)
@@ -30,8 +41,6 @@ shinyServer(function(input, output, session) {
         range = c(min(densityMatrix, 0), max(densityMatrix))
       )
       plot_ly(z =~densityMatrix) %>% add_surface() %>% layout(scene = list(zaxis=axz))
-      
     }
   })
-  
 })
